@@ -1,5 +1,4 @@
-# Fusarium-Effector-Dataset---Effectoromics
-
+# Fusarium Putative Secreted Protein Dataset
 Effector dataset and analysis scripts for Fusarium effectoromics research.
 
 ## Overview
