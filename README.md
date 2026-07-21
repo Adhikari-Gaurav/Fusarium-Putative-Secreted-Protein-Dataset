@@ -2,6 +2,14 @@
 
 Effector dataset and analysis scripts for Fusarium effectoromics research.
 
+## Overview
+
+This repository collects the scripts and data used for identifying and characterizing candidate effector proteins in Fusarium genomes.
+
+## Repository contents
+
+The repository includes scripts for downloading accessions via NCBI command-line tools, analysis scripts for effector prediction and characterization, and supporting data files.
+
 ## Contents
 
 1. [Data acquisition](#1-data-acquisition)
@@ -14,10 +22,6 @@ Effector dataset and analysis scripts for Fusarium effectoromics research.
    7. [Rehydrate the dataset](#17-rehydrate-the-dataset)
 2. [BUSCO analysis](#2-busco-analysis)
 3. [Helixer annotation](#3-helixer-annotation)
-4. [Overview](#4-overview)
-5. [Repository contents](#5-repository-contents)
-6. [Citing NCBI Datasets](#6-citing-ncbi-datasets)
-7. [License](#7-license)
 
 ## 1. Data acquisition
 
@@ -95,20 +99,14 @@ Documentation for the BUSCO completeness assessment step will be added here once
 
 Documentation for the Helixer gene annotation step will be added here once that part of the pipeline is in place.
 
-## 4. Overview
+## Citations
 
-This repository collects the scripts and data used for identifying and characterizing candidate effector proteins in Fusarium genomes.
+This project builds on several external tools. Citations are consolidated here rather than repeated under each step; entries for BUSCO and Helixer will be added once those parts of the pipeline are documented.
 
-## 5. Repository contents
-
-The repository includes scripts for downloading accessions via NCBI command-line tools, analysis scripts for effector prediction and characterization, and supporting data files.
-
-## 6. Citing NCBI Datasets
-
-This project relies on NCBI's Datasets tool to fetch genome data, so if you use or build on this work, please also cite:
+**NCBI Datasets** — used for genome retrieval (see [Data acquisition](#1-data-acquisition)):
 
 O'Leary NA, Cox E, Holmes JB, Anderson WR, Falk R, Hem V, Tsuchiya MTN, Schuler GD, Zhang X, Torcivia J, Ketter A, Breen L, Cothran J, Bajwa H, Tinne J, Meric PA, Hlavina W, Schneider VA. Exploring and retrieving sequence and metadata for species across the tree of life with NCBI Datasets. Sci Data. 2024 Jul 5;11(1):732. doi: 10.1038/s41597-024-03571-y.
 
-## 7. License
+## License
 
 See LICENSE for details (MIT).
