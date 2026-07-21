@@ -8,11 +8,23 @@ This repository collects the scripts and data used for identifying and character
 
 ## Data acquisition
 
-Genome and protein accession files are downloaded using NCBI-provided command-line tools (such as `datasets`, Entrez Direct's `efetch`/`esearch`, or SRA Toolkit's `prefetch`, depending on the script). The general workflow:
+Genome assemblies are pulled down using NCBI's Datasets command-line tool (`datasets`), installed via conda:
 
-1. Identify target accessions on NCBI (genome assemblies, protein sets, or SRA runs).
-2. Download the corresponding files using the NCBI CLI tools.
-3. Run the downstream analysis scripts on the retrieved data.
+```
+conda create -n ncbi_datasets
+conda activate ncbi_datasets
+conda install -c conda-forge ncbi-datasets-cli
+```
+
+With a list of assembly accessions ready, genomes are downloaded in dehydrated form first (metadata only, no sequence data yet) and then rehydrated to pull down the actual files:
+
+```
+datasets download genome accession --inputfile accessions.txt --dehydrated
+unzip ncbi_dataset.zip -d genomes
+datasets rehydrate --directory genomes
+```
+
+Downloading dehydrated first and rehydrating after keeps the initial pull light, and the full sequence data only gets fetched once you're actually ready to use it.
 
 ## Repository contents
 
@@ -21,4 +33,3 @@ The repository includes scripts for downloading accessions via NCBI command-line
 ## License
 
 See LICENSE for details (MIT).
-
