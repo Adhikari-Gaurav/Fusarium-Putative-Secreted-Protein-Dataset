@@ -22,6 +22,10 @@ The repository includes scripts for downloading accessions via NCBI command-line
    7. [Rehydrate the dataset](#17-rehydrate-the-dataset)
 2. [BUSCO analysis](#2-busco-analysis)
 3. [Helixer annotation](#3-helixer-annotation)
+4. [SignalP 2](#4-signalp-2)
+5. [Predector](#5-predector)
+6. [Sequence clustering (TRIBE-MCL)](#6-sequence-clustering-tribe-mcl)
+7. [AlphaFold 3](#7-alphafold-3)
 
 ## 1. Data acquisition
 
@@ -99,9 +103,25 @@ Documentation for the BUSCO completeness assessment step will be added here once
 
 Documentation for the Helixer gene annotation step will be added here once that part of the pipeline is in place.
 
+## 4. SignalP 2
+
+Documentation for the SignalP 2 signal peptide prediction step will be added here once that part of the pipeline is in place.
+
+## 5. Predector
+
+Documentation for the Predector effector prediction step will be added here once that part of the pipeline is in place.
+
+## 6. Sequence clustering (TRIBE-MCL)
+
+Documentation for the TRIBE-MCL sequence clustering step will be added here once that part of the pipeline is in place.
+
+## 7. AlphaFold 3
+
+Documentation for the AlphaFold 3 structure prediction step will be added here once that part of the pipeline is in place. This step may change later.
+
 ## Citations
 
-This project builds on several external tools. Citations are consolidated here rather than repeated under each step; entries for BUSCO and Helixer will be added once those parts of the pipeline are documented.
+This project builds on several external tools. Citations are consolidated here rather than repeated under each step; entries for BUSCO, Helixer, SignalP 2, Predector, TRIBE-MCL, and AlphaFold 3 will be added as those parts of the pipeline are documented.
 
 **NCBI Datasets** — used for genome retrieval (see [Data acquisition](#1-data-acquisition)):
 
