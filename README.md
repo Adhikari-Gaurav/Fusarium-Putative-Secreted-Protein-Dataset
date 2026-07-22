@@ -31,17 +31,17 @@ The repository includes scripts for downloading accessions via NCBI command-line
 
 Genome assemblies for this project are pulled directly from NCBI using their official Datasets command-line tool, `datasets`. Below is a walkthrough of the full process, step by step, from installing the tool to ending up with usable genome files on disk.
 
+This was run using `ncbi-datasets-cli` v18.25.0 on Python 3.11; see [`environment.yml`](environment.yml) at the root of this repo for the exact pinned versions if you want to reproduce it precisely.
+
 ### 1.1 Set up an isolated environment
 
 Before installing anything, it's good practice to create a dedicated conda environment rather than installing packages into your base environment. A conda environment is essentially a self-contained sandbox: it keeps a project's tools and their exact versions separate from everything else on your system, so that different projects, or different versions of the same tool, don't end up interfering with one another later on.
 
 ```
-conda create -n ncbi_datasets python=3.11
+conda create -n ncbi_datasets
 ```
 
-This creates a new environment named `ncbi_datasets` with Python 3.11. The Python version is pinned deliberately: left unspecified, conda resolves to whatever the default Python happens to be when someone runs this command, which can change how the rest of the environment resolves months or years later. Adjust `python=3.11` to match whatever version you've actually validated the pipeline against.
-
-If you'd rather skip the manual steps below, the exact environment is also captured in [`environment.yml`](environment.yml) at the root of this repo, recreated in one shot with `conda env create -f environment.yml`.
+This creates a new, empty environment named `ncbi_datasets`. At this point it has no packages in it yet; it's just a clean, reserved space for this project's dependencies.
 
 ### 1.2 Activate the environment
 
@@ -58,12 +58,10 @@ Your terminal prompt will typically change to show the environment's name in par
 With the environment active, the actual tools can be installed from the conda-forge channel:
 
 ```
-conda install -c conda-forge ncbi-datasets-cli=18.25.0
+conda install -c conda-forge ncbi-datasets-cli
 ```
 
 This single package brings in two command-line programs: `datasets`, which is used to search for and download genome, gene, and taxonomy data, and `dataformat`, which is used to convert the metadata NCBI returns into more readable, tabular formats.
-
-The version is pinned deliberately. `ncbi-datasets-cli` has moved through major CLI versions with breaking changes to flags and default behavior, so installing without a pin can silently pull a different version than whatever the rest of this pipeline was validated against. Update `18.25.0` here (and in `environment.yml`) if you've tested against a different release, and note the version you actually used.
 
 ### 1.4 Prepare the accession list
 
