@@ -1,4 +1,5 @@
-# Fusarium Putative Secreted Protein Dataset
+# Fusarium-Effector-Dataset---Effectoromics
+
 Effector dataset and analysis scripts for Fusarium effectoromics research.
 
 ## Overview
@@ -9,7 +10,7 @@ This repository collects the scripts and data used for identifying and character
 
 The repository includes scripts for downloading accessions via NCBI command-line tools, analysis scripts for effector prediction and characterization, and supporting data files.
 
-## Contents
+## Pipeline steps
 
 1. [Data acquisition](#1-data-acquisition)
    1. [Set up an isolated environment](#11-set-up-an-isolated-environment)
@@ -35,10 +36,12 @@ Genome assemblies for this project are pulled directly from NCBI using their off
 Before installing anything, it's good practice to create a dedicated conda environment rather than installing packages into your base environment. A conda environment is essentially a self-contained sandbox: it keeps a project's tools and their exact versions separate from everything else on your system, so that different projects, or different versions of the same tool, don't end up interfering with one another later on.
 
 ```
-conda create -n ncbi_datasets
+conda create -n ncbi_datasets python=3.11
 ```
 
-This creates a new, empty environment named `ncbi_datasets`. At this point it has no packages in it yet; it's just a clean, reserved space for this project's dependencies.
+This creates a new environment named `ncbi_datasets` with Python 3.11. The Python version is pinned deliberately: left unspecified, conda resolves to whatever the default Python happens to be when someone runs this command, which can change how the rest of the environment resolves months or years later. Adjust `python=3.11` to match whatever version you've actually validated the pipeline against.
+
+If you'd rather skip the manual steps below, the exact environment is also captured in [`environment.yml`](environment.yml) at the root of this repo, recreated in one shot with `conda env create -f environment.yml`.
 
 ### 1.2 Activate the environment
 
@@ -55,24 +58,30 @@ Your terminal prompt will typically change to show the environment's name in par
 With the environment active, the actual tools can be installed from the conda-forge channel:
 
 ```
-conda install -c conda-forge ncbi-datasets-cli
+conda install -c conda-forge ncbi-datasets-cli=18.25.0
 ```
 
 This single package brings in two command-line programs: `datasets`, which is used to search for and download genome, gene, and taxonomy data, and `dataformat`, which is used to convert the metadata NCBI returns into more readable, tabular formats.
+
+The version is pinned deliberately. `ncbi-datasets-cli` has moved through major CLI versions with breaking changes to flags and default behavior, so installing without a pin can silently pull a different version than whatever the rest of this pipeline was validated against. Update `18.25.0` here (and in `environment.yml`) if you've tested against a different release, and note the version you actually used.
 
 ### 1.4 Prepare the accession list
 
 Downloading is driven by a plain text file, conventionally named `accessions.txt`, that simply lists the genomes you want, one NCBI assembly accession per line, for example `GCA_000149555.1`. There's nothing more complicated to it than that: it's essentially a shopping list that tells the `datasets` tool exactly which genomes to go and fetch, so you don't have to type each accession out by hand on the command line.
 
+Use the full versioned accession (`GCA_000149555.1`, not the bare `GCA_000149555`); both GCA (GenBank) and GCF (RefSeq) accessions are accepted.
+
 ### 1.5 Download the genomes in dehydrated form
 
-With the environment active and the accession list ready, the genomes are downloaded using the `--dehydrated` flag:
+With the environment active and the accession list ready, the genomes are downloaded using the `--dehydrated` flag. This pipeline only needs the genomic sequence, not NCBI's own GFF, protein, or RNA files, so the download is restricted to genome FASTA with `--include genome`:
 
 ```
-datasets download genome accession --inputfile accessions.txt --dehydrated
+datasets download genome accession --inputfile accessions.txt --dehydrated --include genome
 ```
 
-A "dehydrated" download only fetches the metadata and a manifest describing what to retrieve, not the actual sequence files themselves. This makes the initial download much faster and lighter, which matters a lot when the accession list is long, since it avoids pulling potentially large sequence files you may not end up needing right away.
+Restricting to `--include genome` matters at scale: by default `datasets download genome` pulls the full data package (genome, GFF, protein, RNA, and report files) for every accession, which adds up to a lot of unused disk space across a large accession list when all you actually need downstream is the genomic sequence.
+
+For accession lists this size, it's also worth setting an NCBI API key to avoid rate-limit throttling on unauthenticated requests, either by adding `--api-key <your-api-key>` to the command above or by exporting it once as the `NCBI_API_KEY` environment variable so it doesn't need to be passed every time.
 
 ### 1.6 Unzip the downloaded package
 
@@ -82,7 +91,7 @@ The command above produces a zip archive (`ncbi_dataset.zip`) containing the met
 unzip ncbi_dataset.zip -d genomes
 ```
 
-This unpacks everything into a folder named `genomes`.
+This unpacks everything into a folder named `genomes`. After rehydration (next step), the genomic FASTA for each accession lands at `genomes/ncbi_dataset/data/<accession>/<accession>_*_genomic.fna`, useful to know so downstream steps like BUSCO can glob for it directly rather than guessing the path.
 
 ### 1.7 Rehydrate the dataset
 
