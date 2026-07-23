@@ -21,6 +21,12 @@ The repository includes scripts for downloading accessions via NCBI command-line
    6. [Unzip the downloaded package](#16-unzip-the-downloaded-package)
    7. [Rehydrate the dataset](#17-rehydrate-the-dataset)
 2. [BUSCO analysis](#2-busco-analysis)
+   1. [Summarize BUSCO scores](#21-summarize-busco-scores)
+   2. [Extract single-copy ortholog sequences](#22-extract-single-copy-ortholog-sequences)
+   3. [Align and trim each ortholog](#23-align-and-trim-each-ortholog)
+   4. [Fill in missing samples](#24-fill-in-missing-samples)
+   5. [Concatenate into a supermatrix](#25-concatenate-into-a-supermatrix)
+   6. [Build the phylogenetic tree](#26-build-the-phylogenetic-tree)
 3. [Helixer annotation](#3-helixer-annotation)
 4. [SignalP 2](#4-signalp-2)
 5. [Predector](#5-predector)
@@ -103,7 +109,76 @@ Rehydrating reads the manifest inside the `genomes` folder and downloads the ful
 
 ## 2. BUSCO analysis
 
-Documentation for the BUSCO completeness assessment step will be added here once that part of the pipeline is in place.
+Once genomes are on disk, each assembly is run through BUSCO separately (one BUSCO run per genome, against whichever lineage dataset is appropriate) to assess completeness and, more importantly for this project, to pull out single-copy orthologous genes shared across all the assemblies. The scripts in this section pick up after that per-genome BUSCO run has already been done, and take care of everything from there: summarizing the scores, extracting the shared single-copy genes, aligning and trimming them, patching any samples missing from a given gene, concatenating everything into one supermatrix, and building a tree from it.
+
+The scripts live in [`scripts/busco/`](scripts/busco/), and `busco_pipeline.sh` is the SLURM batch script that runs the whole thing end to end on an HPC cluster (adjust the `#SBATCH` partition and resource requests for your own cluster). It expects a `BASE_DIR` pointing at a working directory containing a `busco_results` folder with all the individual per-genome BUSCO output subdirectories inside it, and writes everything else relative to that:
+
+```
+BASE_DIR=/path/to/your/project sbatch scripts/busco/busco_pipeline.sh
+```
+
+The subsections below walk through what each part of that script actually does.
+
+### 2.1 Summarize BUSCO scores
+
+The first thing the pipeline does is collect a one-line completeness summary (Complete, Fragmented, Missing, etc.) for every genome into a single table, using [`00_get_busco_results.py`](scripts/busco/00_get_busco_results.py):
+
+```
+python3 00_get_busco_results.py busco_results > busco_summary.tsv
+```
+
+It scans each per-genome BUSCO output folder for its `short_summary.*.json` file, pulls out the assembly accession, the lineage database used, and the C/S/D/F/M scores, and writes it all out as a TSV. This is mainly a sanity check: a quick way to scan for any genome with an unexpectedly low completeness score before spending time on the rest of the pipeline.
+
+### 2.2 Extract single-copy ortholog sequences
+
+Next, [`extract_busco_fasta.py`](scripts/busco/extract_busco_fasta.py) gathers the single-copy BUSCO genes that BUSCO already identified for each genome individually, and regroups them by gene instead of by genome. In other words: instead of "genome A's copy of every gene," you end up with "every genome's copy of gene X," one FASTA file per BUSCO gene, which is the layout needed for the alignment step next.
+
+```
+python3 extract_busco_fasta.py busco_results busco_seqs 16
+```
+
+The three arguments are the directory containing the per-genome BUSCO results, the output directory for the per-gene FASTA files, and the number of parallel worker threads to use (there can be hundreds of BUSCO genes to process, so this step is parallelized). Each sequence's FASTA header is renamed to the genome's sample name rather than BUSCO's internal gene ID, since that's what's needed to keep track of which sequence belongs to which genome once everything is later concatenated.
+
+### 2.3 Align and trim each ortholog
+
+Each per-gene FASTA file (one sequence per genome) is then aligned with MAFFT and trimmed with ClipKit, run in parallel across genes:
+
+```
+mafft gene.faa > gene_aln.faa
+clipkit gene_aln.faa -m gappy -g 0.9 -o gene_aln.clip.faa
+```
+
+MAFFT produces the multiple sequence alignment; ClipKit then removes poorly aligned, gap-heavy columns from it (`-m gappy -g 0.9` trims columns that are more than 90% gaps), which helps keep noisy alignment regions out of the eventual supermatrix and tree.
+
+### 2.4 Fill in missing samples
+
+Not every genome necessarily has a hit for every single BUSCO gene, so [`fill_missing_samples.py`](scripts/busco/fill_missing_samples.py) checks each trimmed alignment against the full list of genomes and patches in gap-only sequences for any that are missing:
+
+```
+python3 fill_missing_samples.py busco_results busco_seqs_aln busco_seqs_aln_filled --max-missing-ratio 0.1
+```
+
+This matters because concatenating alignments into a supermatrix requires every gene alignment to have a row for every genome; without this step, a gene missing from even one genome couldn't be concatenated at all. If a given gene is missing from too many genomes, though, filling it in with gaps stops being useful information and starts diluting the supermatrix, so the `--max-missing-ratio` flag (here set to 0.1, i.e. 10%) drops any gene alignment that's missing more genomes than that threshold instead of filling it.
+
+### 2.5 Concatenate into a supermatrix
+
+All of the filled, trimmed per-gene alignments are then concatenated end to end into one supermatrix, using `seqkit concat`:
+
+```
+seqkit concat --full busco_seqs_aln_filled/*_aln.clip.faa > busco_supermatrix.all.fasta
+```
+
+If there's a reason to drop specific genomes from the final tree (contamination, misidentification, etc.), their accessions can be listed one per line in an `exclude_accessions.txt` file placed in the output directory; the pipeline checks for that file and, if present, removes those accessions from the supermatrix before moving on. If no such file exists, the full supermatrix is used as-is.
+
+### 2.6 Build the phylogenetic tree
+
+Finally, VeryFastTree builds a maximum-likelihood tree from the supermatrix:
+
+```
+VeryFastTree -threads 16 busco_supermatrix.fasta > busco_supermatrix.tree
+```
+
+VeryFastTree is used here as a faster drop-in alternative to FastTree, which matters given how large a concatenated supermatrix across hundreds of BUSCO genes and genomes can get.
 
 ## 3. Helixer annotation
 
@@ -127,9 +202,10 @@ Documentation for the AlphaFold 3 structure prediction step will be added here o
 
 ## References
 
-References are numbered in Vancouver style, in the order the corresponding tool first appears in the pipeline above. Entries for BUSCO, Helixer, SignalP 2, Predector, TRIBE-MCL, and AlphaFold 3 will be appended here as those parts of the pipeline are documented.
+References are numbered in Vancouver style, in the order the corresponding tool first appears in the pipeline above. Entries for Helixer, SignalP 2, Predector, TRIBE-MCL, and AlphaFold 3 will be appended here as those parts of the pipeline are documented.
 
 1. O'Leary NA, Cox E, Holmes JB, Anderson WR, Falk R, Hem V, Tsuchiya MTN, Schuler GD, Zhang X, Torcivia J, Ketter A, Breen L, Cothran J, Bajwa H, Tinne J, Meric PA, Hlavina W, Schneider VA. 2024. Exploring and retrieving sequence and metadata for species across the tree of life with NCBI Datasets. Scientific Data 11(1):732. DOI: [10.1038/s41597-024-03571-y](https://doi.org/10.1038/s41597-024-03571-y).
+2. Manni M, Berkeley MR, Seppey M, Simão FA, Zdobnov EM. 2021. BUSCO Update: Novel and Streamlined Workflows along with Broader and Deeper Phylogenetic Coverage for Scoring of Eukaryotic, Prokaryotic, and Viral Genomes. Molecular Biology and Evolution 38(10):4647-4654. DOI: [10.1093/molbev/msab199](https://doi.org/10.1093/molbev/msab199).
 
 ## License
 
