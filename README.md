@@ -121,7 +121,9 @@ Documentation for the Predector effector prediction step will be added here once
 
 ## 6. Sequence clustering (TRIBE-MCL)
 
-Documentation for the TRIBE-MCL sequence clustering step will be added here once that part of the pipeline is in place.
+Putative secreted protein candidates that pass the earlier prediction and filtering steps (SignalP 2, Predector) are trimmed down to their predicted mature region and then grouped into families using TRIBE-MCL: an all-against-all BLASTP search followed by Markov clustering (MCL) of the resulting similarity network. This groups structurally and evolutionarily related candidates together into "tribes" rather than treating each one as an unrelated singleton, and produces a FASTA file of sequences organized by tribe for downstream analysis.
+
+Scripts and full step-by-step documentation: [`scripts/tribemcl/`](scripts/tribemcl/README.md).
 
 ## 7. AlphaFold 3
 
@@ -129,10 +131,12 @@ Documentation for the AlphaFold 3 structure prediction step will be added here o
 
 ## References
 
-References are numbered in Vancouver style, in the order the corresponding tool first appears in the pipeline above. Each stage's own README (where one exists) may list additional tool-specific citations for that stage; entries for Helixer, SignalP 2, Predector, TRIBE-MCL, and AlphaFold 3 will be appended here as those parts of the pipeline are documented.
+References are numbered in Vancouver style, in the order the corresponding tool first appears in the pipeline above. Each stage's own README (where one exists) may list additional tool-specific citations for that stage; entries for Helixer, SignalP 2, Predector, and AlphaFold 3 will be appended here as those parts of the pipeline are documented.
 
 1. O'Leary NA, Cox E, Holmes JB, Anderson WR, Falk R, Hem V, Tsuchiya MTN, Schuler GD, Zhang X, Torcivia J, Ketter A, Breen L, Cothran J, Bajwa H, Tinne J, Meric PA, Hlavina W, Schneider VA. 2024. Exploring and retrieving sequence and metadata for species across the tree of life with NCBI Datasets. Scientific Data 11(1):732. DOI: [10.1038/s41597-024-03571-y](https://doi.org/10.1038/s41597-024-03571-y).
 2. Manni M, Berkeley MR, Seppey M, Simão FA, Zdobnov EM. 2021. BUSCO Update: Novel and Streamlined Workflows along with Broader and Deeper Phylogenetic Coverage for Scoring of Eukaryotic, Prokaryotic, and Viral Genomes. Molecular Biology and Evolution 38(10):4647-4654. DOI: [10.1093/molbev/msab199](https://doi.org/10.1093/molbev/msab199).
+3. Camacho C, Coulouris G, Avagyan V, Ma N, Papadopoulos J, Bealer K, Madden TL. 2009. BLAST+: architecture and applications. BMC Bioinformatics 10:421. DOI: [10.1186/1471-2105-10-421](https://doi.org/10.1186/1471-2105-10-421).
+4. Enright AJ, Van Dongen S, Ouzounis CA. 2002. An efficient algorithm for large-scale detection of protein families. Nucleic Acids Research 30(7):1575-1584. DOI: [10.1093/nar/30.7.1575](https://doi.org/10.1093/nar/30.7.1575).
 
 ## License
 
