@@ -127,16 +127,19 @@ Scripts and full step-by-step documentation: [`scripts/tribemcl/`](scripts/tribe
 
 ## 7. AlphaFold 3
 
-Documentation for the AlphaFold 3 structure prediction step will be added here once that part of the pipeline is in place. This step may change later.
+Structures for the putative secreted protein candidates identified and clustered in the earlier stages are predicted using AlphaFold 3. Each candidate is packaged into an AlphaFold 3 input JSON, and structure prediction jobs are then submitted to the cluster as a SLURM job array so that many candidates can be folded in parallel.
+
+Scripts and full step-by-step documentation: [`scripts/alphafold3/`](scripts/alphafold3/README.md).
 
 ## References
 
-References are numbered in Vancouver style, in the order the corresponding tool first appears in the pipeline above. Each stage's own README (where one exists) may list additional tool-specific citations for that stage; entries for Helixer, SignalP 2, Predector, and AlphaFold 3 will be appended here as those parts of the pipeline are documented.
+References are numbered in Vancouver style, in the order the corresponding tool first appears in the pipeline above. Each stage's own README (where one exists) may list additional tool-specific citations for that stage; entries for Helixer, SignalP 2, and Predector will be appended here as those parts of the pipeline are documented.
 
 1. O'Leary NA, Cox E, Holmes JB, Anderson WR, Falk R, Hem V, Tsuchiya MTN, Schuler GD, Zhang X, Torcivia J, Ketter A, Breen L, Cothran J, Bajwa H, Tinne J, Meric PA, Hlavina W, Schneider VA. 2024. Exploring and retrieving sequence and metadata for species across the tree of life with NCBI Datasets. Scientific Data 11(1):732. DOI: [10.1038/s41597-024-03571-y](https://doi.org/10.1038/s41597-024-03571-y).
 2. Manni M, Berkeley MR, Seppey M, Simão FA, Zdobnov EM. 2021. BUSCO Update: Novel and Streamlined Workflows along with Broader and Deeper Phylogenetic Coverage for Scoring of Eukaryotic, Prokaryotic, and Viral Genomes. Molecular Biology and Evolution 38(10):4647-4654. DOI: [10.1093/molbev/msab199](https://doi.org/10.1093/molbev/msab199).
 3. Camacho C, Coulouris G, Avagyan V, Ma N, Papadopoulos J, Bealer K, Madden TL. 2009. BLAST+: architecture and applications. BMC Bioinformatics 10:421. DOI: [10.1186/1471-2105-10-421](https://doi.org/10.1186/1471-2105-10-421).
 4. Enright AJ, Van Dongen S, Ouzounis CA. 2002. An efficient algorithm for large-scale detection of protein families. Nucleic Acids Research 30(7):1575-1584. DOI: [10.1093/nar/30.7.1575](https://doi.org/10.1093/nar/30.7.1575).
+5. Abramson J, Adler J, Dunger J, Evans R, Green T, Pritzel A, et al. 2024. Accurate structure prediction of biomolecular interactions with AlphaFold 3. Nature 630(8016):493-500. DOI: [10.1038/s41586-024-07487-w](https://doi.org/10.1038/s41586-024-07487-w).
 
 ## License
 
